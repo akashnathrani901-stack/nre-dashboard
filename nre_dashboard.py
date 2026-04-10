@@ -352,6 +352,11 @@ else:  # Same Year (Billed = Paid)
 if sel_statuses:
     inv_f = inv_f[inv_f["status"].isin(sel_statuses)]
 
+# Re-filter opps to only deals that have invoices matching the active filters
+# This ensures NRE Contract Value reacts to year/status changes
+filtered_sfdc_ids = inv_f["salesforce_id"].unique()
+opps_f = opps_f[opps_f["sfdc_18_id"].isin(filtered_sfdc_ids)]
+
 li_f = df_li_raw[df_li_raw["salesforce_id"].isin(sfdc_ids)].copy()
 if sel_billed_years:
     li_f = li_f[li_f["invoice_date"].dt.year.isin(sel_billed_years)]
