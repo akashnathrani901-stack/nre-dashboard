@@ -507,22 +507,28 @@ setInterval(()=>{
 setTimeout(()=>location.reload(),RM);
 
 // -- BOOT ----------------------------------------------------------------------
+// Poll for Plotly instead of waiting for window.onload (avoids blocking on slow resource load)
+var _bootAttempts = 0;
 function boot() {
-  if (typeof Plotly === 'undefined') {
+  if (typeof Plotly !== 'undefined') {
+    try {
+      renderAll();
+      document.getElementById('loading').style.display = 'none';
+    } catch(e) {
+      document.getElementById('loading').innerHTML =
+        '<div style="color:#ef9a9a;font-size:.85rem;padding:20px;text-align:center">'
+        +'<b>Render error</b><br>'+e.message+'</div>';
+    }
+  } else if (_bootAttempts < 100) {
+    _bootAttempts++;
+    setTimeout(boot, 100); // retry every 100ms, up to 10s
+  } else {
     document.getElementById('loading').innerHTML =
-      '<div style="color:#ef9a9a;font-size:.9rem;text-align:center;padding:20px">'
-      +'⚠️ Plotly failed to load.<br>Make sure the server is running at localhost:8502</div>';
-    return;
-  }
-  try {
-    renderAll();
-    document.getElementById('loading').style.display = 'none';
-  } catch(e) {
-    document.getElementById('loading').innerHTML =
-      '<div style="color:#ef9a9a;font-size:.85rem;padding:20px">Error: '+e.message+'</div>';
+      '<div style="color:#ef9a9a;font-size:.85rem;padding:20px;text-align:center">'
+      +'Plotly.js failed to load after 10s.<br>Check the server is running.</div>';
   }
 }
-window.addEventListener('load', boot);
+document.addEventListener('DOMContentLoaded', function(){ setTimeout(boot, 50); });
 </script>
 </body></html>"""
 
@@ -547,6 +553,7 @@ import base64, http.server, socketserver, threading, webbrowser, sys, os
 PORT = 8502
 _B64 = "{html_b64}"
 HTML = base64.b64decode(_B64).decode("utf-8")
+HTML_BYTES = HTML.encode("utf-8")
 
 # Load Plotly.js from the locally installed plotly Python package (no CDN needed)
 def _find_plotly_js():
@@ -568,25 +575,29 @@ class H(http.server.BaseHTTPRequestHandler):
             if PLOTLY_JS:
                 self.send_response(200)
                 self.send_header("Content-type", "application/javascript")
+                self.send_header("Cache-Control", "max-age=3600")
                 self.send_header("Content-Length", str(len(PLOTLY_JS)))
                 self.end_headers()
                 self.wfile.write(PLOTLY_JS)
             else:
                 self.send_response(404); self.end_headers()
         else:
-            b = HTML.encode("utf-8")
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
-            self.send_header("Content-Length", str(len(b)))
+            self.send_header("Content-Length", str(len(HTML_BYTES)))
             self.end_headers()
-            self.wfile.write(b)
+            self.wfile.write(HTML_BYTES)
     def log_message(self, *a): pass
 
+# Threaded server — handles HTML + plotly.js concurrently
+class ThreadedServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
 def run(port):
-    with socketserver.TCPServer(("", port), H) as s:
-        s.allow_reuse_address = True
-        print(f"  Dashboard  →  http://localhost:{{port}}")
-        print("  Plotly.js  →  served locally (no CDN)")
+    with ThreadedServer(("", port), H) as s:
+        print(f"  Dashboard  ->  http://localhost:{{port}}")
+        print("  Plotly.js  ->  served locally (no CDN)")
         print("  Press Ctrl+C to stop.\\n")
         threading.Timer(1.5, lambda: webbrowser.open(f"http://localhost:{{port}}")).start()
         s.serve_forever()
