@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import os
 from pathlib import Path
+from streamlit_autorefresh import st_autorefresh
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -109,6 +110,7 @@ def get_connection():
     )
 
 
+@st.cache_data(ttl=900, show_spinner=False)   # expires after 15 min — synced with auto-refresh
 def fetch_from_snowflake():
     conn = get_connection()
     df_opps = pd.read_sql(OPPS_SQL, conn)
@@ -151,6 +153,13 @@ st.caption("Closed Won opportunities with NRE > 0 | Since Jan 2025")
 can_live = has_snowflake_secrets()
 has_cache = cache_exists()
 
+# ---------------------------------------------------------------------------
+# Auto-refresh every 15 minutes (900 000 ms) — works for ALL users
+# Returns the number of refreshes so far; we use it for the countdown display.
+# ---------------------------------------------------------------------------
+REFRESH_INTERVAL_MS = 15 * 60 * 1000   # 15 minutes
+refresh_count = st_autorefresh(interval=REFRESH_INTERVAL_MS, key="auto_refresh")
+
 # Data-source selector in sidebar
 st.sidebar.header("Data Source")
 
@@ -165,8 +174,6 @@ elif can_live:
     st.sidebar.info("No cache found — loading from Snowflake.")
     use_live = True
 elif has_cache:
-    age = cache_age()
-    st.sidebar.success(f"Using cached data (as of {age:%Y-%m-%d %H:%M})")
     use_live = False
 else:
     st.error("No Snowflake credentials and no cached data found. "
@@ -174,17 +181,36 @@ else:
     st.stop()
 
 if use_live:
-    with st.spinner("Fetching live data from Snowflake…"):
+    with st.spinner("Fetching data from Snowflake…"):
         df_opps_raw, df_inv_raw, df_li_raw = fetch_from_snowflake()
-    # Offer to save cache
     if st.sidebar.button("Save to cache (share with team)"):
         save_cache(df_opps_raw, df_inv_raw, df_li_raw)
         st.sidebar.success("Cache saved to `data/` folder.")
 else:
-    if has_cache:
-        age = cache_age()
-        st.sidebar.caption(f"Cache last updated: {age:%Y-%m-%d %H:%M}")
     df_opps_raw, df_inv_raw, df_li_raw = load_cache()
+
+# Refresh status in sidebar
+_now = pd.Timestamp.now()
+if use_live:
+    _source_label = "Live Snowflake"
+    _data_ts       = _now          # cache_data TTL handles staleness
+else:
+    _source_label = "Cached parquet"
+    _data_ts       = cache_age()
+
+_next_refresh_in = 15 - (_now.minute % 15)   # approx minutes to next tick
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    f"""
+    <div style="font-size:0.78rem; color:#555; line-height:1.6">
+    <b>Auto-refresh:</b> every 15 min<br>
+    <b>Source:</b> {_source_label}<br>
+    <b>Data as of:</b> {_data_ts:%Y-%m-%d %H:%M}<br>
+    <b>Next refresh:</b> ~{_next_refresh_in} min
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # Parse dates
 for df in [df_inv_raw, df_li_raw]:
