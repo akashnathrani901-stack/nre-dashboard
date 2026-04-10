@@ -30,7 +30,7 @@ HTML = r"""<!DOCTYPE html>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f6;display:flex;height:100vh;overflow:hidden}
 
-/* ── Sidebar ─────────────────────────────────── */
+/* -- Sidebar ----------------------------------- */
 #sidebar{width:260px;min-width:260px;background:#1a1f36;color:#c5cae9;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding:0}
 .sb-header{padding:18px 16px 12px;border-bottom:1px solid #2e3557}
 .sb-logo{font-size:1rem;font-weight:700;color:#fff;letter-spacing:.3px}
@@ -51,12 +51,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .tip-box{margin:8px 14px;font-size:.66rem;color:#78909c;background:#1a1f36;border-left:2px solid #3949ab;padding:5px 7px}
 .sb-footer{margin-top:auto;padding:10px 14px;font-size:.65rem;color:#546e7a;border-top:1px solid #2e3557}
 
-/* ── Main ────────────────────────────────────── */
+/* -- Main -------------------------------------- */
 #main{flex:1;overflow-y:auto;padding:16px}
 .page-title{font-size:1.2rem;font-weight:700;color:#1a237e;margin-bottom:2px}
 .page-sub{font-size:.75rem;color:#78909c;margin-bottom:14px}
 
-/* ── KPI Cards ───────────────────────────────── */
+/* -- KPI Cards --------------------------------- */
 .kpi-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .kpi{flex:1;min-width:110px;background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 6px rgba(0,0,0,.08);border-top:3px solid #e8eaf6}
 .kpi.blue{border-top-color:#1565c0}.kpi.teal{border-top-color:#00695c}.kpi.green{border-top-color:#2e7d32}
@@ -65,23 +65,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;backgrou
 .kpi-val{font-size:1.25rem;font-weight:700;color:#1a237e;line-height:1.2}
 .kpi-lbl{font-size:.68rem;color:#78909c;margin-top:3px;text-transform:uppercase;letter-spacing:.4px}
 
-/* ── Chart Cards ─────────────────────────────── */
+/* -- Chart Cards ------------------------------- */
 .chart-card{background:#fff;border-radius:10px;box-shadow:0 1px 6px rgba(0,0,0,.08);padding:14px 16px;margin-bottom:14px}
 .chart-title{font-size:.88rem;font-weight:600;color:#1a237e;margin-bottom:4px}
 .chart-sub{font-size:.7rem;color:#90a4ae;margin-bottom:8px}
 .row2{display:grid;grid-template-columns:1.8fr 1fr;gap:14px;margin-bottom:14px}
 .row2-eq{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 
-/* ── Sort bar ────────────────────────────────── */
+/* -- Sort bar ---------------------------------- */
 .sort-bar{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .sort-bar span{font-size:.7rem;color:#90a4ae}
 .sort-bar select{font-size:.72rem;padding:3px 8px;border:1px solid #e0e0e0;border-radius:5px;background:#fafafa;color:#37474f;cursor:pointer}
 
-/* ── Heatmap radio ───────────────────────────── */
+/* -- Heatmap radio ----------------------------- */
 .radio-bar{display:flex;gap:12px;margin-bottom:6px}
 .radio-bar label{font-size:.75rem;color:#546e7a;cursor:pointer;display:flex;align-items:center;gap:4px}
 
-/* ── Tables ──────────────────────────────────── */
+/* -- Tables ------------------------------------ */
 .tab-nav{display:flex;border-bottom:2px solid #e8eaf6;margin-bottom:10px}
 .tab-btn{padding:7px 14px;font-size:.78rem;font-weight:600;color:#78909c;cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px}
 .tab-btn.active{color:#1565c0;border-bottom-color:#1565c0}
@@ -93,7 +93,7 @@ tbody tr:hover{background:#f3f4ff}
 tbody td{padding:6px 10px;border-bottom:1px solid #f0f0f0;color:#37474f;white-space:nowrap}
 tbody tr:nth-child(even) td{background:#fafbff}
 
-/* ── Loading overlay ─────────────────────────── */
+/* -- Loading overlay --------------------------- */
 #loading{position:fixed;inset:0;background:rgba(26,31,54,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff}
 .spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:#7986cb;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -131,7 +131,7 @@ tbody tr:nth-child(even) td{background:#fafbff}
   <select multiple id="f-billed" style="height:64px;" onchange="renderAll()"></select>
 
   <div class="cond-box">
-    <div class="cond-lbl">── Year Condition ──</div>
+    <div class="cond-lbl">-- Year Condition --</div>
     <div class="cond-opts">
       <label><input type="radio" name="yc" value="AND" checked onchange="onCond()"> AND</label>
       <label><input type="radio" name="yc" value="OR"  onchange="onCond()"> OR</label>
@@ -252,7 +252,7 @@ tbody tr:nth-child(even) td{background:#fafbff}
 </div><!-- /main -->
 
 <script>
-// ── DATA ─────────────────────────────────────────────────────────────────────
+// -- DATA ---------------------------------------------------------------------
 const OPPS = %%OPPS%%;
 const INV  = %%INV%%;
 const LI   = %%LI%%;
@@ -262,7 +262,7 @@ INV.forEach(r => NF.forEach(f => r[f] = +r[f]||0));
 LI.forEach(r  => NF.forEach(f => r[f] = +r[f]||0));
 OPPS.forEach(r => r.nre_contract_value = +r.nre_contract_value||0);
 
-// ── UTILS ────────────────────────────────────────────────────────────────────
+// -- UTILS --------------------------------------------------------------------
 const $m = n => '$'+(+n||0).toLocaleString('en-US',{maximumFractionDigits:0});
 const today = new Date(); today.setHours(0,0,0,0);
 const yr = s => { if(!s) return null; const d=new Date(s); return isNaN(d)?null:d.getFullYear(); };
@@ -289,7 +289,7 @@ const PALETTE = ['#3949ab','#00897b','#e53935','#fb8c00','#8e24aa','#039be5','#4
 const PLY_CFG = {responsive:true, displayModeBar:false};
 const PLY_MARGIN = {t:10,b:10,l:10,r:10,pad:4};
 
-// ── INIT FILTERS ─────────────────────────────────────────────────────────────
+// -- INIT FILTERS -------------------------------------------------------------
 populate('f-group',   [...new Set(OPPS.map(o=>o.sales_group).filter(Boolean))].sort());
 populate('f-account', [...new Set(OPPS.map(o=>o.account_name).filter(Boolean))].sort());
 populate('f-billed',  [...new Set(INV.map(r=>yr(r.invoice_date)).filter(Boolean))].sort((a,b)=>b-a));
@@ -312,7 +312,7 @@ function onCond() {
 document.querySelectorAll('input[name="yc"]').forEach(r=>r.addEventListener('change',onCond));
 onCond();
 
-// ── FILTERS ──────────────────────────────────────────────────────────────────
+// -- FILTERS ------------------------------------------------------------------
 function applyFilters() {
   const sg=sel('f-group'), ac=sel('f-account'), by=nSel('f-billed'), py=nSel('f-paid'),
         st=sel('f-status'), yc=document.querySelector('input[name="yc"]:checked').value;
@@ -340,7 +340,7 @@ function applyFilters() {
   return {fO,fI,fL};
 }
 
-// ── KPIs ─────────────────────────────────────────────────────────────────────
+// -- KPIs ---------------------------------------------------------------------
 function updateKPIs(O,I) {
   const nre=O.reduce((s,r)=>s+r.nre_contract_value,0);
   const inv=I.reduce((s,r)=>s+r.amount,0);
@@ -355,14 +355,14 @@ function updateKPIs(O,I) {
   document.getElementById('k-rate').textContent     = (inv?paid/inv*100:0).toFixed(1)+'%';
 }
 
-// ── CHART HELPERS ─────────────────────────────────────────────────────────────
+// -- CHART HELPERS -------------------------------------------------------------
 const FONT = {family:'-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', size:11, color:'#546e7a'};
 function layout(extra) {
   return {margin:PLY_MARGIN, font:FONT, paper_bgcolor:'#fff', plot_bgcolor:'#fff',
     legend:{font:{size:10},orientation:'h',y:1.08,x:0}, ...extra};
 }
 
-// ── CHARTS ────────────────────────────────────────────────────────────────────
+// -- CHARTS --------------------------------------------------------------------
 function cAcct(O,I) {
   const aMap={}; O.forEach(o=>aMap[o.sfdc_18_id]=o.account_name);
   const rows=groupBy(I.map(i=>({...i,_ac:aMap[i.salesforce_id]||'Unknown'})),'_ac',
@@ -454,7 +454,7 @@ function cAging(I) {
   }],layout({showlegend:false,yaxis:{title:'Outstanding ($)',gridcolor:'#f0f0f0'},xaxis:{tickfont:{size:10}}}),PLY_CFG);
 }
 
-// ── TABLES ────────────────────────────────────────────────────────────────────
+// -- TABLES --------------------------------------------------------------------
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -471,7 +471,7 @@ function mkTbl(id, rows, cols) {
   document.getElementById(id).innerHTML=h;
 }
 
-// ── RENDER ALL ────────────────────────────────────────────────────────────────
+// -- RENDER ALL ----------------------------------------------------------------
 function renderAll() {
   const {fO,fI,fL}=applyFilters();
   updateKPIs(fO,fI);
@@ -497,7 +497,7 @@ function renderAll() {
   ]);
 }
 
-// ── COUNTDOWN + AUTO-RELOAD ───────────────────────────────────────────────────
+// -- COUNTDOWN + AUTO-RELOAD ---------------------------------------------------
 const T0=Date.now(), RM=15*60*1000;
 setInterval(()=>{
   const left=RM-((Date.now()-T0)%RM);
@@ -506,7 +506,7 @@ setInterval(()=>{
 },1000);
 setTimeout(()=>location.reload(),RM);
 
-// ── BOOT ──────────────────────────────────────────────────────────────────────
+// -- BOOT ----------------------------------------------------------------------
 function boot() {
   if (typeof Plotly === 'undefined') {
     document.getElementById('loading').innerHTML =
