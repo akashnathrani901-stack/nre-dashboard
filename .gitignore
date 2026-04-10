@@ -1,9 +1,8 @@
 # Snowflake credentials — never commit
 .streamlit/secrets.toml
 
-# Cached data files — contain sensitive sales/NRE data, share internally
-data/*.parquet
-data/*.csv
+# Cached data files committed intentionally for team sharing
+# data/*.parquet
 
 # Python
 __pycache__/
