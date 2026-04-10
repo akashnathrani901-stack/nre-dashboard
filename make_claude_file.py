@@ -25,7 +25,7 @@ HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NRE Sales Dashboard</title>
-<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<script src="/plotly.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f0f2f6;display:flex;height:100vh;overflow:hidden}
@@ -507,10 +507,22 @@ setInterval(()=>{
 setTimeout(()=>location.reload(),RM);
 
 // ── BOOT ──────────────────────────────────────────────────────────────────────
-window.addEventListener('load',()=>{
-  renderAll();
-  document.getElementById('loading').style.display='none';
-});
+function boot() {
+  if (typeof Plotly === 'undefined') {
+    document.getElementById('loading').innerHTML =
+      '<div style="color:#ef9a9a;font-size:.9rem;text-align:center;padding:20px">'
+      +'⚠️ Plotly failed to load.<br>Make sure the server is running at localhost:8502</div>';
+    return;
+  }
+  try {
+    renderAll();
+    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    document.getElementById('loading').innerHTML =
+      '<div style="color:#ef9a9a;font-size:.85rem;padding:20px">Error: '+e.message+'</div>';
+  }
+}
+window.addEventListener('load', boot);
 </script>
 </body></html>"""
 
@@ -530,34 +542,61 @@ Generated: {gen} | {len(df_opps)} deals · {len(df_inv)} invoices · {len(df_li)
 Run:  python nre_dashboard_server.py
 Then open:  http://localhost:8502
 """
-import base64, http.server, socketserver, threading, webbrowser, sys
+import base64, http.server, socketserver, threading, webbrowser, sys, os
 
 PORT = 8502
 _B64 = "{html_b64}"
 HTML = base64.b64decode(_B64).decode("utf-8")
 
+# Load Plotly.js from the locally installed plotly Python package (no CDN needed)
+def _find_plotly_js():
+    try:
+        import plotly as _plt
+        p = os.path.join(os.path.dirname(_plt.__file__), "package_data", "plotly.min.js")
+        if os.path.exists(p):
+            with open(p, "rb") as f:
+                return f.read()
+    except Exception:
+        pass
+    return None
+
+PLOTLY_JS = _find_plotly_js()
+
 class H(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        b = HTML.encode("utf-8")
-        self.send_response(200)
-        self.send_header("Content-type","text/html; charset=utf-8")
-        self.send_header("Content-Length",str(len(b)))
-        self.end_headers(); self.wfile.write(b)
-    def log_message(self,*a): pass
+        if self.path == "/plotly.js":
+            if PLOTLY_JS:
+                self.send_response(200)
+                self.send_header("Content-type", "application/javascript")
+                self.send_header("Content-Length", str(len(PLOTLY_JS)))
+                self.end_headers()
+                self.wfile.write(PLOTLY_JS)
+            else:
+                self.send_response(404); self.end_headers()
+        else:
+            b = HTML.encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-type", "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(b)))
+            self.end_headers()
+            self.wfile.write(b)
+    def log_message(self, *a): pass
 
 def run(port):
-    with socketserver.TCPServer(("",port),H) as s:
-        print(f"  Dashboard → http://localhost:{{port}}")
+    with socketserver.TCPServer(("", port), H) as s:
+        s.allow_reuse_address = True
+        print(f"  Dashboard  →  http://localhost:{{port}}")
+        print("  Plotly.js  →  served locally (no CDN)")
         print("  Press Ctrl+C to stop.\\n")
-        threading.Timer(1.2, lambda: webbrowser.open(f"http://localhost:{{port}}")).start()
+        threading.Timer(1.5, lambda: webbrowser.open(f"http://localhost:{{port}}")).start()
         s.serve_forever()
 
-print("\\n{'='*50}")
+print("\\n" + "="*52)
 print("  NRE Sales & Invoice Dashboard")
-print(f"  Data as of: {gen}")
-print(f"{'='*50}")
+print(f"  Data as of : {gen}")
+print("="*52)
 try:    run(PORT)
-except OSError: run(PORT+1)
+except OSError: run(PORT + 1)
 except KeyboardInterrupt: print("\\nStopped."); sys.exit(0)
 '''
 
